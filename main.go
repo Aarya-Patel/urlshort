@@ -1,13 +1,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	handler "github.com/Aarya-Patel/urlshort/handler"
 )
 
+var filename = flag.String("filename", "uri_mapping.yaml", "The YAML file containing the URI mappings")
+
 func main() {
+	flag.Parse()
 	mux := defaultMux()
 
 	// Build the MapHandler using the mux as the fallback
@@ -19,13 +24,12 @@ func main() {
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
-	yaml := `
-  - path: /urlshort
-    url: https://github.com/gophercises/urlshort
-  - path: /urlshort-final
-    url: https://github.com/gophercises/urlshort/tree/solution
-  `
-	yamlHandler, err := handler.YAMLHandler([]byte(yaml), mapHandler)
+	yaml, err := os.ReadFile(*filename)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	yamlHandler, err := handler.YAMLHandler(yaml, mapHandler)
 	if err != nil {
 		panic(err)
 	}
